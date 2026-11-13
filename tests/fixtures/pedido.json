@@ -1,0 +1,26 @@
+{
+  "id": 820982911946154508,
+  "name": "#6491",
+  "order_number": 6491,
+  "created_at": "2030-01-10T10:00:00+01:00",
+  "updated_at": "2030-01-10T10:00:05+01:00",
+  "cancelled_at": null,
+  "financial_status": "paid",
+  "fulfillment_status": null,
+  "currency": "EUR",
+  "total_price": "34.90",
+  "current_total_price": "34.90",
+  "tags": "",
+  "email": "cliente@example.com",
+  "shipping_address": {
+    "first_name": "Ana", "last_name": "Prueba", "address1": "Calle Falsa 123",
+    "city": "Madrid", "zip": "28001", "province_code": "M", "country_code": "ES"
+  },
+  "line_items": [
+    {"id": 466157049, "sku": "PACK-ESENCIALES", "title": "Pack Esenciales del hogar", "product_id": 632910392,
+     "variant_id": 39072856, "quantity": 1, "current_quantity": 1, "price": "29.90", "properties": []},
+    {"id": 466157050, "sku": "DET-FL", "title": "Detergente floral", "product_id": 632910393,
+     "variant_id": 39072857, "quantity": 1, "current_quantity": 1, "price": "5.00",
+     "properties": [{"name": "_bundle", "value": "no"}]}
+  ]
+}

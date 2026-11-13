@@ -1,0 +1,16 @@
+[project]
+name = "natulim-pedidos"
+version = "0.1.0"
+description = "Sincronización de pedidos de Shopify a SQLite y marcado de pedidos que cambian a Canarias."
+requires-python = ">=3.11"
+dependencies = [
+  "flask>=3.0",
+  "requests>=2.32",
+  "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
