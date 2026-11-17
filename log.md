@@ -64,3 +64,8 @@ Bitácora de la simulación: qué decidí, por qué y qué quedó pendiente. Lo 
   - Hipótesis principal: la app desglosa un solo nivel, o el Esenciales no está configurado.
   - Descartado como causa principal: envío a Baleares (hay 213 pedidos a Baleares con el mismo courier).
 - **Herramientas:** cloudflared descargado del release oficial (no hay Homebrew en esta máquina).
+
+## 2026-11-17 — Correcciones al documento final (después de releerlo)
+
+- **Req. 2:** la tabla decía "Linealización que va al 3PL" para `natulim.line_items`. Es impreciso: se arma en Shopify **antes** del desglose, por eso #6480 (que sí llegó) también tiene códigos de pack. La alerta que proponía estaba mal apuntada: el chequeo va sobre lo que la app manda al 3PL. Corregido.
+- **Req. 3 y 4:** sumé al "¿lo ponemos en producción?" el límite de unos 5 s que Shopify da para responder un webhook. Hoy se procesa dentro de la petición; en producción conviene responder 200 al instante y procesar en cola.

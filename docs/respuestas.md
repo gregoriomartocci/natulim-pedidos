@@ -30,7 +30,7 @@ Todo lo que sigue sale de la tienda de desarrollo `natulim-sevica`, leída por l
 > |---|---|---|
 > | Packs que contiene | Pack Limpiacristales (SKU 300259) y Pack Desengrasante (300258) | **Pack Esenciales del Hogar (300246)** y Pack Lavavajillas a Mano (300642) |
 > | Líneas | 3 | 12 (incluye 5 regalos de aniversario `_gwp`) |
-> | Linealización que va al 3PL (`natulim.line_items`) | `PLD1-PDD1-VD1` | `PackD1-BAR1-PEHD1-RCM1-SU1-RCE1-LMBI1-CM2-FL1-TB1-BB1-VD1` |
+> | Linealización armada en Shopify, antes del desglose (`natulim.line_items`) | `PLD1-PDD1-VD1` | `PackD1-BAR1-PEHD1-RCM1-SU1-RCE1-LMBI1-CM2-FL1-TB1-BB1-VD1` |
 > | Origen | Checkout web, pedido recuperado | Checkout web, primer pedido con 7 suscripciones de Recharge |
 > | Envío | Madrid, courier PQ | Baleares (07420), courier PQ |
 > | En la tienda dev | Pagado, sin preparar | Pagado, sin preparar |
@@ -45,13 +45,13 @@ Todo lo que sigue sale de la tienda de desarrollo `natulim-sevica`, leída por l
 > - El envío a Baleares no parece ser la causa: hay más de 200 pedidos a Baleares en la tienda con el mismo courier (PQ) que #6480.
 > - Que #6491 sea un pedido de Recharge no lo pude descartar del todo, porque la app no está instalada. Pero la mayoría de los pedidos de la tienda vienen de suscripciones, y los packs simples se desglosan bien.
 >
-> **Lo que no pude ver:** la app de bundles no está en la tienda dev, y en Shopify ningún pack tiene componentes definidos: en los 79 pedidos con el Esenciales y en los 44 con el Limpiacristales, el pack llega como una sola línea. El desglose ocurre fuera de Shopify, en la app. Por eso la causa exacta (desglose de un solo nivel o falta de configuración del Esenciales) hay que confirmarla mirando la configuración de la app.
+> **Lo que no pude ver:** la app de bundles no está en la tienda dev, y en Shopify ningún pack tiene componentes definidos: en los 79 pedidos con el Esenciales y en los 44 con el Limpiacristales, el pack llega como una sola línea, y la linealización `natulim.line_items` lleva el código del pack en los dos pedidos (también en #6480, que sí llegó). O sea: esa linealización se arma antes del desglose, y el desglose ocurre fuera de Shopify, en la app. Lo que recibe el 3PL es la salida de esa app, que no pude ver. Por eso la causa exacta (desglose de un solo nivel o falta de configuración del Esenciales) hay que confirmarla mirando la configuración de la app.
 >
 > **Qué hay que hacer**
 > 1. **Hoy:** desglosar a mano #6491 y reenviarlo al 3PL. Hay que editar el pedido, quitar el Pack Esenciales y agregar sus componentes finales a precio 0: las 4 botellas y las recargas de cada tipo, según la variante. Avisar a CX para que le escriba al cliente.
 > 2. **Hoy:** buscar todos los pedidos abiertos con el Esenciales (`sku:300246 OR sku:300247 OR sku:300248` y `fulfillment_status:unfulfilled`) y hacer lo mismo con cada uno. En esta tienda hay 79 pedidos con la variante de 2. En producción hay que contar los abiertos.
 > 3. **Esta semana:** en la app, definir el Esenciales con sus componentes finales, no con otros packs, o hacer que la app desglose de forma recursiva. Además, sumar un test por pack que verifique que ningún SKU de pack queda en lo que se manda al 3PL. Es una app hecha con IA y sin pruebas: el próximo pack de packs va a fallar igual.
-> 4. **Alerta:** que ningún pedido salga al 3PL con un SKU de pack. Un chequeo en la linealización (`natulim.line_items`) que avise a Logística si aparece un código de pack sin desglosar.
+> 4. **Alerta:** que ningún pedido salga al 3PL con un SKU de pack. El chequeo va sobre **lo que la app manda al 3PL** (no sobre `natulim.line_items`, que siempre lleva códigos de pack porque se arma antes del desglose): si aparece un SKU de pack, se frena el envío y se avisa a Logística. Para confirmar la causa: un pedido de prueba solo con el Esenciales y mirar qué sale hacia el 3PL.
 > 5. **A mediano plazo:** evaluar los bundles nativos de Shopify (productos con componentes). Mandan los componentes al fulfillment sin una app propia en el medio.
 >
 > Le respondería a Logística y a CX con este mismo resumen, para cerrar las dos hipótesis.
@@ -67,6 +67,7 @@ Todo lo que sigue sale de la tienda de desarrollo `natulim-sevica`, leída por l
 1. **Un lugar estable para correr**, con disco persistente para SQLite: un servicio pequeño en Fly.io o Railway con volumen, o una VM. En los planes gratuitos con disco efímero la base se pierde en cada despliegue.
 2. **Reconciliación.** Los webhooks son "al menos una vez", no "exactamente una vez": si el servicio está caído más tiempo del que Shopify reintenta, se pierden cambios. Hace falta un job cada hora que pida a la Admin API los pedidos con `updated_at` posterior al último sincronizado y los pase por la misma función de guardado.
 3. **Monitoreo y respaldo:** alerta si `/health` falla o si hay respuestas 500, y una copia continua de la base (por ejemplo, con Litestream).
+4. **Responder rápido y procesar en cola.** Shopify espera la respuesta del webhook unos 5 segundos. Hoy el servicio procesa dentro de la petición, y el req. 4 consulta y escribe por GraphQL: en la prueba respondió en alrededor de 1 segundo, pero si la API limita (`THROTTLED`), los reintentos pueden pasar ese tiempo y Shopify cuenta el webhook como fallido y lo reintenta. No rompe nada, porque todo es idempotente, pero en producción conviene guardar el webhook, responder 200 al instante y procesarlo en una cola.
 
 **¿Cómo lo ponemos en producción?**
 1. Crear la app en el Dev Dashboard de la organización de producción (no reutilizar la de dev) e instalarla en la tienda.
