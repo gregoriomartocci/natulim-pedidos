@@ -1,6 +1,6 @@
 # Simulación Natulim · Respuestas
 
-Gregorio Martocci · Repo: `<URL del repo en GitHub>`
+Gregorio Martocci · Repo: https://github.com/gregoriomartocci/natulim-pedidos
 
 Todo lo que sigue sale de la tienda de desarrollo `natulim-sevica`, leída por la Admin API el 17/11/2026. Lo que no se pudo verificar está marcado como tal.
 
