@@ -47,3 +47,20 @@ Bitácora de la simulación: qué decidí, por qué y qué quedó pendiente. Lo 
 ## 2026-11-12 — Tests
 
 - 38 tests con pytest, sin red: regiones, firma, sincronización (duplicados, desorden, inicio, borrado), tag de Canarias (todas las transiciones, bucle, ida y vuelta) y el endpoint completo con un Shopify falso.
+
+## 2026-11-17 — Acceso a la tienda y prueba en vivo
+
+- **Acceso:** Santiago pasó la tienda `natulim-sevica` (Shopify Plus App Development) y las credenciales de una app ya creada. Funcionan con client credentials, así que no hubo que crear la app. Las credenciales van en `.env`, que está fuera de git.
+- **La tienda la comparten otros candidatos:** hay pedidos con `prueba-rrhh-yara` y dos que ya tenían `cambio_a_pedido_para_canarias`. Por eso:
+  - la prueba crea sus propios pedidos con el tag `prueba-e2e` y no edita ningún pedido existente;
+  - **no** corrí `preparar_pedidos_abiertos.py`, que escribiría un metacampo en ~5.500 pedidos ajenos;
+  - el registro de webhooks solo agrega los nuestros y nunca borra otros.
+- **Prueba de punta a punta** (`scripts/probar_en_tienda.py`, salida en `docs/evidencia.md`): alta, edición de línea, cambio a Canarias con tag, vuelta a península (el tag se queda), pedido nacido en Canarias sin tag, y borrado marcado. Todo OK; un solo `marcado`, sin bucle.
+- **Req. 1:** 920 primeros pedidos de suscripción, uno por cliente, todos fechados entre el 14 y el 21/05/2026 (datos replicados). Con el corte estricto de 6 meses (17/05): península 386, Canarias 11, Baleares 14. Desde el 14/05: 854 / 32 / 34. Reporto el estricto y aclaro la sensibilidad al día de corte.
+- **Req. 2:**
+  - En la tienda ningún pack tiene componentes (`productVariantComponents` vacío, sin metacampos de bundle): el desglose lo hace la app, fuera de Shopify.
+  - Los dos pedidos tienen el pack como una sola línea, y la linealización `natulim.line_items` lleva el código del pack (`PLD1`, `PEHD1`).
+  - La diferencia que sí se ve es de producto: según su ficha, el **Pack Esenciales del Hogar incluye los otros cuatro packs** (Antical, Desengrasante, Limpiacristales y Multisuperficies), mientras que el Limpiacristales es botella + recargas.
+  - Hipótesis principal: la app desglosa un solo nivel, o el Esenciales no está configurado.
+  - Descartado como causa principal: envío a Baleares (hay 213 pedidos a Baleares con el mismo courier).
+- **Herramientas:** cloudflared descargado del release oficial (no hay Homebrew en esta máquina).

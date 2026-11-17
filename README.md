@@ -51,6 +51,7 @@ El servicio obtiene el token solo (client credentials grant, válido 24 h, se re
 ```bash
 uv run python -m app.main                    # escucha en :8000 (PORT para cambiarlo)
 cloudflared tunnel --url http://localhost:8000   # en otra terminal: da una URL https://….trycloudflare.com
+# sin Homebrew: bajar el binario de https://github.com/cloudflare/cloudflared/releases
 ```
 
 Registrar los webhooks apuntando a esa URL (es idempotente):
@@ -67,6 +68,15 @@ uv run python -m scripts.preparar_pedidos_abiertos
 ```
 
 ## 4. Probar de punta a punta
+
+**Automático** (crea sus propios pedidos de prueba con el tag `prueba-e2e`, no toca pedidos existentes):
+
+```bash
+uv run python -m scripts.probar_en_tienda            # alta, edición de línea, cambio a Canarias, pedido nacido en Canarias, borrado
+uv run python -m scripts.probar_en_tienda --limpiar  # borra los pedidos de prueba
+```
+
+La salida de la corrida del 17/11 está en `docs/evidencia.md`. **A mano**, desde el admin:
 
 1. Crear un pedido de prueba en la tienda (admin → Pedidos → Crear pedido, con dirección en Madrid).
 2. Ver el log del servicio: `orders/create #… {'sync': 'nuevo', 'marcar': 'punto_de_partida'}`.
